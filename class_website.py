@@ -45,6 +45,19 @@ def make_cohort_json(df_path):
     print("cohort.json created!")
 
 
+def make_techs_json(csv_path):
+    df = pd.read_csv(csv_path)
+    techs_json = {"techs":[]}
+    for ind, row in df.iterrows():
+        tech_dict = {"name": row["Technology Name"],
+                     "image": "../assets/tech_img/"+row["Image Name"],
+                     "link": row["Info Link"]}
+        techs_json['techs'].append(tech_dict)
+    with open("techs.json", "w") as outfile:
+        json.dump(techs_json, outfile)
+    print("techs.json created!")
+
+
 def convert_to_jpg(img_path):
     '''
     Converts image to JPEG and saves new file with .jpg extension
