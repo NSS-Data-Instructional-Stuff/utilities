@@ -32,7 +32,9 @@ def make_cohort_dict(class_info):
                         "linkedIn": row['LinkedIn'],
                         "portfolio": str(row['Capstone (link)']),
                         "proImg": "../assets/img/{}1.jpg".format(row['First'].lower()),
-                        "funImg": "../assets/img/{}2.jpg".format(row['First'].lower())}
+                        "funImg": "../assets/img/{}2.jpg".format(row['First'].lower()),
+                        "video": row['Capstone (video)'],
+                        "podcast": row['podcast']}
         cohort_json['cohort'].append(student_dict)
     return cohort_json
 
