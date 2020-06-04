@@ -75,8 +75,27 @@ def convert_to_jpg(img_path):
     Converts image to JPEG and saves new file with .jpg extension
     '''
     img = Image.open(img_path)
-    new_path = '.'.join(img_path.split(".")[:-1]) + ".jpg" # join with '.' in case multiple . in path
-    img.save(new_path, "JPEG")
+    if img.format != "JPEG" or img_path[-4:] != ".jpg":
+        img_path = '.'.join(img_path.split(".")[:-1]) + ".jpg" # join with '.' in case multiple . in path
+        img.save(img_path, "JPEG")
+    return img_path
+
+
+def decrease_image_res(img_path):
+    '''
+    Decreases image resolution to 72dpi
+    '''
+    im = Image.open(img_path)
+    if im.info['dpi'][0] > 72 and im.info['dpi'][0] > 72:
+        im.save(img_path, dpi = (72, 72))
+
+
+def prepare_images(img_dir, ignore_files = ['.DS_Store']):
+    for img_path in os.listdir(img_dir):
+        if img_path not in ignore_files:
+            full_img_path = convert_to_jpg(img_dir+'/'+img_path)
+            decrease_image_res(full_img_path)
+    print("prepared all images in {}".format(img_dir))
 
 
 def calc_min_img_ratio(img_dir):
