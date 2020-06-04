@@ -4,8 +4,8 @@ import pandas as pd
 import json
 
 
-def prepare_df(df_path):
-    df = pd.read_csv(df_path)
+def prepare_df(csv_path):
+    df = pd.read_csv(csv_path)
     if "First" not in df.columns:
         df[["First", "Last"]] = df['Name'].str.replace('  ', ' ').str.split(' ', expand = True)
     return df
@@ -13,6 +13,13 @@ def prepare_df(df_path):
 
 def clean_string(s):
     return s.replace('“', '"').replace('”', '"').replace("’", "'").replace("—", "-")
+
+
+def fix_url(url):
+    if "https://" not in url and url[:3] == "www":
+        return "https://"+url
+    else:
+        return url
 
 
 def make_cohort_dict(class_info):
@@ -28,23 +35,25 @@ def make_cohort_dict(class_info):
                         "lastName": row['Last'],
                         "reelThemIn": "<p>"+clean_string(str(row['Tagline']))+"</p>",
                         "bio": "<p>"+clean_string(str(row['Bio']))+"</p>",
-                        "github": row['Github'],
-                        "linkedIn": row['LinkedIn'],
+                        "github": fix_url(row['Github']),
+                        "linkedIn": fix_url(row['LinkedIn']),
                         "portfolio": str(row['Capstone (link)']),
                         "proImg": "../assets/img/{}1.jpg".format(row['First'].lower()),
                         "funImg": "../assets/img/{}2.jpg".format(row['First'].lower()),
-                        "video": row['Capstone (video)'],
-                        "podcast": row['podcast']}
+                        "video": fix_url(str(row['Capstone (video)'])),
+                        "podcast": fix_url(str(row['podcast'])),
+                        "resume": "../assets/resume/{}.pdf".format(row['First'].lower())}
         cohort_json['cohort'].append(student_dict)
     return cohort_json
 
 
-def make_cohort_json(df_path):
-    df = prepare_df(df_path)
+def make_cohort_json(csv_path):
+    df = prepare_df(csv_path)
     cohort_json = make_cohort_dict(df)
-    with open("cohort.json", "w") as outfile:
+    outpath = "/".join(csv_path.split("/")[:-1])+"/cohort.json"
+    with open(outpath, "w") as outfile:
         json.dump(cohort_json, outfile)
-    print("cohort.json created!")
+    print("cohort.json created: {}".format(outpath))
 
 
 def make_techs_json(csv_path):
@@ -55,9 +64,10 @@ def make_techs_json(csv_path):
                      "image": "../assets/tech_img/"+row["Image Name"],
                      "link": row["Info Link"]}
         techs_json['techs'].append(tech_dict)
-    with open("techs.json", "w") as outfile:
+    outpath = "/".join(csv_path.split("/")[:-1])+"/techs.json"
+    with open(outpath, "w") as outfile:
         json.dump(techs_json, outfile)
-    print("techs.json created!")
+    print("techs.json created: {}".format(outpath))
 
 
 def convert_to_jpg(img_path):
