@@ -1,6 +1,7 @@
 from PIL import Image
 import os
 import pandas as pd
+import numpy as np
 import json
 
 
@@ -12,7 +13,10 @@ def prepare_df(csv_path):
 
 
 def clean_string(s):
-    return s.replace('“', '"').replace('”', '"').replace("’", "'").replace("—", "-")
+    if type(s) == str:
+        return s.replace('“', '"').replace('”', '"').replace("’", "'").replace("—", "-")
+    else:
+        return 'nan'
 
 
 def fix_url(url):
@@ -22,27 +26,44 @@ def fix_url(url):
         return url
 
 
+def clean_dict(d):
+    for k, v in d.items():
+        if v == 'nan':
+            d.pop(k)
+    return d
+
+
+def check_file(name, sub_folder):
+    return "stuff"
+
+
+def make_flipped_images(existing_img_list):
+    return "stuff"
+
+
+
 def make_cohort_dict(class_info):
     '''
     function to make cohort.json.
     arg class_info: pandas DataFrame, df including minimally the columns:
-        First, Last, Tagline, Bio, Github, LinkedIn, and Capstone
+        First, Last, Tagline, Bio, Github, LinkedIn, Capstone (link), Capstone (video), Email
     '''
     cohort_json = {"cohort": []}
     for ind, row in class_info.iterrows():
         student_dict = {"id": ind,
                         "firstName": row['First'],
                         "lastName": row['Last'],
-                        "reelThemIn": "<p>"+clean_string(str(row['Tagline']))+"</p>",
-                        "bio": "<p>"+clean_string(str(row['Bio']))+"</p>",
-                        "github": fix_url(row['Github']),
-                        "linkedIn": fix_url(row['LinkedIn']),
-                        "portfolio": str(row['Capstone (link)']),
+                        "reelThemIn": clean_string(row['Tagline']),
+                        "bio": clean_string(row['Bio']),
+                        "github": fix_url(str(row['Github'])),
+                        "linkedIn": fix_url(str(row['LinkedIn'])),
+                        "portfolio": fix_url(str(row['Capstone (link)'])),
                         "proImg": "../assets/img/{}1.jpg".format(row['First'].lower()),
                         "funImg": "../assets/img/{}2.jpg".format(row['First'].lower()),
                         "video": fix_url(str(row['Capstone (video)'])),
-                        "podcast": fix_url(str(row['podcast'])),
-                        "resume": "../assets/resume/{}.pdf".format(row['First'].lower())}
+                        "resume": "../assets/resume/{}.pdf".format(row['First'].lower()),
+                        "email": str(row['Email'])}
+        student_dict = {k:v for k, v in student_dict.items() if v != 'nan'}
         cohort_json['cohort'].append(student_dict)
     return cohort_json
 
@@ -86,17 +107,25 @@ def decrease_image_res(img_path):
     Decreases image resolution to 72dpi
     '''
     im = Image.open(img_path)
+    print(img_path)
     if im.info['dpi'][0] > 72 and im.info['dpi'][0] > 72:
         im.save(img_path, dpi = (72, 72))
 
 
 def prepare_images(img_dir, ignore_files = ['.DS_Store']):
-    for img_path in os.listdir(img_dir):
-        if img_path not in ignore_files:
-            full_img_path = convert_to_jpg(img_dir+'/'+img_path)
-            decrease_image_res(full_img_path)
+    existing_img_list = [im for im in os.listdir(img_dir) if im not in ignore_files]
+    for img_name in existing_img_list:
+        full_img_path = convert_to_jpg(img_dir+'/'+img_name)
+        decrease_image_res(full_img_path)
+    #make_flipped_images(existing_image_list)
     print("prepared all images in {}".format(img_dir))
 
+
+##################
+### DO NOT USE ###
+###   BROKEN   ###
+### NEEDS FIXN ###
+##################
 
 def calc_min_img_ratio(img_dir):
     min_ratio = 10000 #just make a really large number to start with
