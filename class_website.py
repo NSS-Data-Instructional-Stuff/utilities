@@ -33,8 +33,11 @@ def clean_dict(d):
     return d
 
 
-def check_file(name, sub_folder):
-    return "stuff"
+def check_file(sub_folder, name, path_to_repo):
+    if os.path.exists('{}/assets/{}/{}'.format(path_to_repo, sub_folder, name)):
+        return '../assets/{}/{}'.format(sub_folder, name)
+    else:
+        return 'nan'
 
 
 def make_flipped_images(existing_img_list):
@@ -42,7 +45,7 @@ def make_flipped_images(existing_img_list):
 
 
 
-def make_cohort_dict(class_info):
+def make_cohort_dict(class_info, path_to_repo):
     '''
     function to make cohort.json.
     arg class_info: pandas DataFrame, df including minimally the columns:
@@ -58,10 +61,10 @@ def make_cohort_dict(class_info):
                         "github": fix_url(str(row['Github'])),
                         "linkedIn": fix_url(str(row['LinkedIn'])),
                         "portfolio": fix_url(str(row['Capstone (link)'])),
-                        "proImg": "../assets/img/{}1.jpg".format(row['First'].lower()),
-                        "funImg": "../assets/img/{}2.jpg".format(row['First'].lower()),
+                        "proImg": check_file("img", "{}1.jpg".format(row['First'].lower()), path_to_repo),
+                        "funImg": check_file("img", "{}2.jpg".format(row['First'].lower()), path_to_repo),
                         "video": fix_url(str(row['Capstone (video)'])),
-                        "resume": "../assets/resume/{}.pdf".format(row['First'].lower()),
+                        "resume": check_file("resume", "{}.pdf".format(row['First'].lower()), path_to_repo),
                         "email": str(row['Email'])}
         student_dict = {k:v for k, v in student_dict.items() if v != 'nan'}
         cohort_json['cohort'].append(student_dict)
@@ -69,8 +72,11 @@ def make_cohort_dict(class_info):
 
 
 def make_cohort_json(csv_path):
+    split_path = csv_path.split("/")
+    repo_ind = [i for i, p in enumerate(split_path) if ".github.io" in p][0]
+    path_to_repo = "/".join(split_path[:repo_ind+1])
     df = prepare_df(csv_path)
-    cohort_json = make_cohort_dict(df)
+    cohort_json = make_cohort_dict(df, path_to_repo)
     outpath = "/".join(csv_path.split("/")[:-1])+"/cohort.json"
     with open(outpath, "w") as outfile:
         json.dump(cohort_json, outfile)
