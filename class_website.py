@@ -1,8 +1,9 @@
-from PIL import Image
+from PIL import Image, ImageOps
 import os
 import pandas as pd
 import numpy as np
 import json
+from collections import Counter
 
 
 def prepare_df(csv_path):
@@ -26,13 +27,6 @@ def fix_url(url):
         return url
 
 
-def clean_dict(d):
-    for k, v in d.items():
-        if v == 'nan':
-            d.pop(k)
-    return d
-
-
 def check_file(sub_folder, name, path_to_repo):
     if os.path.exists('{}/assets/{}/{}'.format(path_to_repo, sub_folder, name)):
         return '../assets/{}/{}'.format(sub_folder, name)
@@ -40,9 +34,15 @@ def check_file(sub_folder, name, path_to_repo):
         return 'nan'
 
 
-def make_flipped_images(existing_img_list):
-    return "stuff"
-
+## Haven't tested yet ##
+def make_mirrored_images(existing_img_list, image_dir):
+    existing_img_ppl = Counter([im[:-5] for im in existing_img_list])
+    need_flipped_names = [k+'1.jpg' for k, v in exist_img_ppl.items() if v == 1]
+    pro_imgs = [im for im in existing_img_list if im in need_flipped_names]
+    for im in pro_imgs:
+        i = Image.open(image_dir+'/'+im)
+        i_mirror = ImageOps.mirror(i)
+        i_mirror.save(img__dir + '/' + im[:-5] + '2.jpg')
 
 
 def make_cohort_dict(class_info, path_to_repo):
@@ -123,46 +123,5 @@ def prepare_images(img_dir, ignore_files = ['.DS_Store']):
     for img_name in existing_img_list:
         full_img_path = convert_to_jpg(img_dir+'/'+img_name)
         decrease_image_res(full_img_path)
-    #make_flipped_images(existing_image_list)
+    make_mirrored_images(existing_image_list, image_dir)
     print("prepared all images in {}".format(img_dir))
-
-
-##################
-### DO NOT USE ###
-###   BROKEN   ###
-### NEEDS FIXN ###
-##################
-
-def calc_min_img_ratio(img_dir):
-    min_ratio = 10000 #just make a really large number to start with
-    for img_path in os.listdir(img_dir):
-        img = Image.open(img_dir+img_path)
-        s = img.size
-        if s[0]/s[1] < min_ratio:
-            min_ratio = s[0]/s[1]
-    return min_ratio
-
-
-def crop_image(img_path, ratio, desired_width = 1024, desired_height = 153):
-    img = Image.open(img_path)
-    width, height = img.size
-
-    new_height_half = (width/ratio)/2
-
-    # width_diff = width - desired_width
-    # height_diff = height - desired_height
-    #
-    # if width_diff < 0:
-    #     raise Exception ("Image too narrow")
-    # else:
-    #     remove_left_right = width_diff/2
-    #
-    # if height_diff < 0:
-    #     raise Exception ("Image too short")
-    # else:
-    #     remove_top_bottom = height_diff/2
-
-
-
-    cropped = img.crop((0, new_height_half, width, height - new_height_half))
-    cropped.save(img_path, "JPEG")
