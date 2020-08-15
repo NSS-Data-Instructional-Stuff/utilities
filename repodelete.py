@@ -45,7 +45,7 @@ def prompt_for_org_info():
     while not org:
         org = input("Github Org: ")
 
-    return org
+    return org.strip()
 
 
 def load_token():
