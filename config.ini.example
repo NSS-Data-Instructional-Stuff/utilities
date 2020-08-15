@@ -1,0 +1,3 @@
+[Github]
+# must have delete_repo and public_repo scopes
+PersonalAccessToken = __YOUR_PAT_HERE__
