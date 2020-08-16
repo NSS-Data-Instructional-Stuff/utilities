@@ -1,6 +1,11 @@
 #pickles folder
 /pickles
 
+# config.ini has a github PAT
+config.ini
+
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
