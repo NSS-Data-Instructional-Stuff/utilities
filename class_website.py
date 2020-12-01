@@ -21,10 +21,12 @@ def clean_string(s):
 
 
 def fix_url(url):
-    if "https://" not in url and url[:3] == "www":
-        return "https://"+url
-    else:
-        return url
+    if url != "nan":
+        if all(part not in url for part in ["www", "github"]):
+            url = 'www.'+url
+        if "https://" not in url:
+            url = "https://"+url
+    return url
 
 
 def check_file(sub_folder, name, path_to_repo):
@@ -36,13 +38,13 @@ def check_file(sub_folder, name, path_to_repo):
 
 ## Haven't tested yet ##
 def make_mirrored_images(existing_img_list, image_dir):
-    existing_img_ppl = Counter([im[:-5] for im in existing_img_list])
-    need_flipped_names = [k+'1.jpg' for k, v in exist_img_ppl.items() if v == 1]
+    existing_img_ppl = Counter([im[:-5] for im in existing_img_list if '.jpg' in im])
+    need_flipped_names = [k+'1.jpg' for k, v in existing_img_ppl.items() if v == 1]
     pro_imgs = [im for im in existing_img_list if im in need_flipped_names]
     for im in pro_imgs:
         i = Image.open(image_dir+'/'+im)
         i_mirror = ImageOps.mirror(i)
-        i_mirror.save(img__dir + '/' + im[:-5] + '2.jpg')
+        i_mirror.save(image_dir + '/' + im[:-5] + '2.jpg')
 
 
 def make_cohort_dict(class_info, path_to_repo):
@@ -102,10 +104,14 @@ def convert_to_jpg(img_path):
     Converts image to JPEG and saves new file with .jpg extension
     '''
     img = Image.open(img_path)
+    # print(img.info)
     if img.format != "JPEG" or img_path[-4:] != ".jpg":
         img_path = '.'.join(img_path.split(".")[:-1]) + ".jpg" # join with '.' in case multiple . in path
-        img.save(img_path, "JPEG")
-    return img_path
+        try:
+            img.save(img_path, "JPEG")
+        except OSError:
+            img = img.convert('RGB')
+            img.save(img_path, "JPEG")
 
 
 def decrease_image_res(img_path):
@@ -113,15 +119,31 @@ def decrease_image_res(img_path):
     Decreases image resolution to 72dpi
     '''
     im = Image.open(img_path)
-    print(img_path)
-    if im.info['dpi'][0] > 72 and im.info['dpi'][0] > 72:
-        im.save(img_path, dpi = (72, 72))
+    # print(img_path)
+    # print(im.info)
+    # print(im.info)
+    try:
+        if im.info['dpi'][0] > 72:
+            im.save(img_path, dpi = (72, 72))
+    except KeyError:
+        print('{} does not have dpi attribute'.format(img_path.split('/')[-1]))
+
+def find_image_height(img_path, aspect_ratio):
+    '''
+    print new image height with correct aspect ratio
+    '''
+    im = Image.open(img_path)
+    
+    print(img_path.split('/')[-1])
+    print('new height: ', round(im.width/aspect_ratio))
 
 
 def prepare_images(img_dir, ignore_files = ['.DS_Store']):
     existing_img_list = [im for im in os.listdir(img_dir) if im not in ignore_files]
     for img_name in existing_img_list:
-        full_img_path = convert_to_jpg(img_dir+'/'+img_name)
-        decrease_image_res(full_img_path)
-    make_mirrored_images(existing_image_list, image_dir)
+        decrease_image_res(img_dir+'/'+img_name)
+    for img_name in existing_img_list:
+        convert_to_jpg(img_dir+'/'+img_name)
+        find_image_height(img_dir+'/'+img_name, 0.82)
+    make_mirrored_images(existing_img_list, img_dir)
     print("prepared all images in {}".format(img_dir))
