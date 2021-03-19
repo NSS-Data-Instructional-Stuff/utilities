@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import argparse
+import os
+import logging
+from pathlib import Path
+import sys
+
+from dc import download_reports
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def dir_path(string):
+    out_path = Path(string)
+
+    if out_path.is_dir():
+        return out_path
+    else:
+        raise NotADirectoryError(string)
+
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--out', type=dir_path, default=os.path.curdir, help='Output directory.')
+parser.add_argument('--show', dest='show', action='store_true', help='Show Chrome browser.')
+# os.environ.get('DC_ORG_NAME', 'new-nss-data-analytics-cohort-2')
+parser.add_argument(
+    '--org-name',
+    type=str,
+    default=os.environ.get('DATACAMP_ORG_NAME'),
+    help='DC org you want reports for. (Can also be set with DATACAMP_ORG_NAME env variable)'
+)
+
+parser.set_defaults(show=False)
+
+args = parser.parse_args()
+
+if not args.org_name:
+    logger.warning('Hey, I need to use a value for the organization.')
+    exit(parser.print_usage())
+
+try:
+    download_reports(out_dir=args.out, show=args.show, org_name=args.org_name)
+
+except KeyboardInterrupt:
+    logger.info('Well fine then.')
+    sys.exit(1)
