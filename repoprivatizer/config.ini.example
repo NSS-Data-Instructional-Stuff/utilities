@@ -2,4 +2,4 @@
 # must have delete_repo and public_repo scopes
 # https://github.com/settings/tokens/new
 
-PersonalAccessToken = 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
+PersonalAccessToken = YourToken
